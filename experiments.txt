@@ -1,0 +1,11 @@
+
+EXPERIMENT #1
+=============
+
+Settings:
+	d1=0
+	no queue constraints
+	infinite demands
+	
+Run MPC
+Parameterize the result in terms of FD parameters
