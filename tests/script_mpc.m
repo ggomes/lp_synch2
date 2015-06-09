@@ -3,7 +3,7 @@ close all
 clc
 
 % load the network and build the lp
-stngs = Settings;
+stngs = Stngs;
 net= Network(stngs);
 lp = LP(net,stngs,'ic_in_set');
 ctm = CTM(net,stngs);

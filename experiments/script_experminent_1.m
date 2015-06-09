@@ -2,17 +2,16 @@ clear
 close all
 clc
 
-addpath(fullfile(fileparts(mfilename('fullpath')),'src') ) 
-addpath(fullfile(fileparts(mfilename('fullpath')),'src','classes') ) 
+root = fileparts(fileparts(mfilename('fullpath')));
+addpath(fullfile(root,'classes')) 
 
 % load the network and build the lp
-stngs = load_simulation_settings;
+stngs = Stngs;
 net= Network(stngs);
-lp = LP(net,stngs,'ic_given');
-ctm = CTM(net,stngs);
-
-% ranges of parameters
+lp = LP(net,stngs,'ic_in_set');
 
 % build and solve MPLP
+tic 
 mplp = MPLP(net,lp,stngs);
 mplp = mplp.solve();
+toc

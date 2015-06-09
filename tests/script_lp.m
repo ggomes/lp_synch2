@@ -5,7 +5,7 @@ clc
 addpath( fullfile(fileparts(mfilename('fullpath')),'classes') )
 
 % load the network and build the lp
-stngs = Settings;
+stngs = Stngs;
 net= Network(stngs);
 lp = LP(net,stngs,'ic_given');
 ctm = CTM(net,stngs);

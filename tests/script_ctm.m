@@ -5,7 +5,7 @@ clc
 addpath( fullfile(fileparts(mfilename('fullpath')),'classes') )
 
 % load 
-stngs = Settings;
+stngs = Stngs;
 net= Network(stngs);
 ctm = CTM(net,stngs);
     
