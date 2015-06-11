@@ -2,7 +2,8 @@ clear
 close all
 clc
 
-addpath( fullfile(fileparts(mfilename('fullpath')),'classes') )
+root = fileparts(fileparts(mfilename('fullpath')));
+addpath( fullfile(root,'classes') );
 
 % load 
 stngs = Stngs;

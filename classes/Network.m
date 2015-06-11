@@ -10,17 +10,14 @@ classdef Network < handle
         n0
         l0
         beta1
-        beta2
         d1
         d2
         d3
         beta1_bar
-        beta2_bar
         xi1
         xi2
         v1
         v2
-        w1
         w2
         n1_jam
         n2_jam
@@ -50,26 +47,20 @@ classdef Network < handle
             obj.l0 = [0;0];
             
             obj.beta1 = 0.2;
-            obj.beta2 = 0;                      % no downstream offramp
             
             obj.d1 = 0*obj.sim_dt;
             obj.d2 = 2.0002;
             obj.d3 = 2.0002;
             
             obj.beta1_bar = 1-obj.beta1;
-            obj.beta2_bar = 1-obj.beta2;
             
             obj.v1 = 0.24135 * obj.sim_dt;
             obj.v2 = 0.24135 * obj.sim_dt;
             
-            obj.w1 = 0.06034 * obj.sim_dt;
             obj.w2 = 0.06034 * obj.sim_dt;
             
-            obj.xi1 = 1-obj.w1;
+            obj.xi1 = 1;
             obj.xi2 = 1-obj.w2;
-            
-            obj.n1_jam = 11.51003;
-            obj.n2_jam = 11.51003;
             
             obj.l1_jam = inf;
             obj.l2_jam = inf;
@@ -80,8 +71,6 @@ classdef Network < handle
             obj.r1_bar = 0.4*0.5556 * obj.sim_dt;
             obj.r2_bar = 0.4*0.5556 * obj.sim_dt;
             
-            obj.n1_crit = obj.f1_bar / obj.v1;
-            obj.n2_crit = obj.f2_bar / obj.v2;
         end
         
         function [d]=demand_for_time_step(obj,k)
@@ -90,6 +79,22 @@ classdef Network < handle
             else
                 d = [obj.d1 obj.d2 obj.d3]';
             end
+        end
+        
+        function [v1,v2,w2,nc1,nc2,nb1,nb2,F1,F2,bbar,rb1,rb2,d1]=get_short_names(obj)
+            v1 = obj.v1;
+            v2 = obj.v2;
+            w2 = obj.w2;
+            nc1 = obj.f1_bar / obj.v1 / obj.beta1_bar;
+            nc2 = obj.f2_bar / obj.v2;
+            nb2 = obj.f2_bar * ( 1/obj.v2 + 1/obj.w2 );
+            nb1 = nb2;
+            F1 = obj.f1_bar;
+            F2 = obj.f2_bar;
+            bbar = obj.beta1_bar;
+            rb1 = obj.r1_bar;
+            rb2 = obj.r2_bar;
+            d1 = obj.d1;
         end
         
     end
