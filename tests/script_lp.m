@@ -6,9 +6,8 @@ root = fileparts(fileparts(mfilename('fullpath')));
 addpath( fullfile(root,'classes') );
 
 % load the network and build the lp
-stngs = Stngs;
-net= Network(stngs);
-lp = LP(net,stngs,'ic_given');
+net= Network();
+lp = LP(net,'ic_given');
 ctm = CTM(net,stngs);
 
 % solve it

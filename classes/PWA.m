@@ -1,10 +1,9 @@
-classdef PWA
+classdef PWA < handle
     
     properties
         
         % setup
         net
-        stngs
         
         P
         sys
@@ -18,43 +17,42 @@ classdef PWA
     methods ( Access = public )
         
         % constructor
-        function [obj] = PWA(net,stngs,horizon,polyrep,rfact)
+        function [obj] = PWA(net,horizon,polyrep,rfact)
             obj.net = net;
-            obj.stngs = stngs;
             
             % check condition
             if abs(net.n2_jam - net.f1_bar / net.w2 - net.f2_bar / net.v2)>1e-5
                 error('condition for 4 regions (instead of 6) is not met')
             end
             
-            [v1,v2,w2,~,~,nb1,nb2,F1,F2,bbar,rb1,rb2,d1]=net.get_short_names;
+            [v1,v2,w2,~,~,nb1,nb2,F1,F2,bbar,rb1,rb2,dml]=net.get_short_names;
 
             % I : FF1 | FF2
             sys1 = LTISystem( ...
                 'A', [   1-v1    0 ; ...
                        v1*bbar  1-v2 ], ...
                 'B', eye(2), ...
-                'f', [ d1 ; 0 ] );  
+                'f', [ dml ; 0 ] );  
             
             % II : FF1 | CP2 
             sys2 = LTISystem( ...
                 'A', [   1-v1   0 ; ...
                        v1*bbar  1 ], ...
                 'B', eye(2), ...
-                'f', [ d1 ; -F2 ] );  
+                'f', [ dml ; -F2 ] );  
             
             % III : CP1 | FF2 
             sys3 = LTISystem( ...
                 'A', [ 1   0 ; ...
                        0 1-v2], ...
                 'B', eye(2), ...
-                'f', [ -F1/bbar + d1 ; F1 ] );  
+                'f', [ -F1/bbar + dml ; F1 ] );  
             
             % IV : CG1 | CP2
             sys4 = LTISystem( ...
                 'A', [ 1 w2/bbar ; 0 1-w2 ], ...
                 'B', eye(2), ...
-                'f', [d1-w2*nb2/bbar ; w2*nb2 - F2 ] );  
+                'f', [dml-w2*nb2/bbar ; w2*nb2 - F2 ] );  
 
             % set regions
             obj.P = obj.get_poly(polyrep);
@@ -74,20 +72,19 @@ classdef PWA
             obj.pwa.u.max = [rb1;rb2];
 
             % define online mpc controller
+%             obj.pwa.x.with('terminalSet');
+%             obj.pwa.x.terminalSet = obj.P(1);
             obj.horizon = horizon;
             obj.mpc = MPCController(obj.pwa, horizon);
             
             % Set panalties used in the cost function:
-            obj.mpc.model.x.penalty = OneNormFunction(eye(2));
-            obj.mpc.model.u.penalty = OneNormFunction(rfact*eye(2));
-
+%             obj.mpc.model.x.penalty = OneNormFunction(eye(2));
+            obj.mpc.model.u.penalty = OneNormFunction(-rfact*eye(2));
+            
         end
         
-        function [obj]=build_explicit(obj)
-            
-            % Construct the explicit solution
-            obj.empc = obj.mpc.toExplicit();
-            
+        function [obj]=build_explicit(obj)            
+            obj.empc = obj.mpc.toExplicit();            
         end
         
         function [C]=get_explicit_mpc_for_ic(x0)
@@ -109,15 +106,53 @@ classdef PWA
             end
         end
         
-        function []=plot_P(obj)
-            figure
-            plot(obj.P)
+        function [f]=plot_P(obj)
+            f=figure;
+            plot(obj.P);
             view(90,-90)
             xlabel('n1')
             ylabel('n2')
             title('(f1,f2) regions')
         end
         
+        function []=simulate(obj,runs)
+            % runs is an array with fields x0 and u
+            
+            for i=1:length(runs)
+                obj.pwa.initialize(runs(i).x0);
+                Z(i) = obj.pwa.simulate(runs(i).u);
+            end
+            
+            f=obj.plot_P;
+            figure(f);
+            hold on
+            for i=1:length(Z)
+                plot(Z(i).X(1,:),Z(i).X(2,:),'k','LineWidth',1)
+                plot(Z(i).X(1,1),Z(i).X(2,1),'ko','MarkerSize',6)
+                plot(Z(i).X(1,end),Z(i).X(2,end),'k.','MarkerSize',20)
+            end
+            
+        end
+        
+        function [u1,u2,feasible,openloop]=evaluate_mpc_on_grid(obj,N1,N2)
+            x1 = length(N1);
+            x2 = length(N2);
+            feasible = false(x1,x2);
+            openloop = repmat(struct('cost',nan,'U',nan,'X',nan,'Y',nan),x1,x2);
+            u1 = nan(x1,x2);
+            u2 = nan(x1,x2);
+            for i=1:length(N1)
+                for j=1:length(N2)
+                    disp([i j])
+                    [U,f,o] = obj.mpc.evaluate([N1(i);N2(j)]);
+                    feasible(i,j) = f;
+                    openloop(i,j) = o;
+                    u1(i,j) = U(1);
+                    u2(i,j) = U(2);
+                end
+            end
+        end
+
     end
     
     methods (Access = private)

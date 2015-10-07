@@ -3,17 +3,20 @@ close all
 clc
 
 root = fileparts(fileparts(mfilename('fullpath')));
-addpath( fullfile(root,'classes') );
+rmpath(fullfile(root,'classes','4D')) 
+addpath(fullfile(root,'classes','2D')) 
+addpath(fullfile(root,'classes','control')) 
 
 % load 
-stngs = Stngs;
-net= Network(stngs);
-ctm = CTM(net,stngs);
+net= Network();
+ctm = CTM(net);
     
 % run ctm
-X_no_control = ctm.run_no_control;
-X_alinea = ctm.run_with_controller(ControllerAlinea(net));
-X_explicit = ctm.run_with_controller(ControllerExplicit([0;0]));
+K = 10;
+x0 = [6;6];
+X_no_control = ctm.run_no_control(x0,K);
+X_alinea = ctm.run_with_controller(ControllerAlinea(net),x0,K);
+X_explicit = ctm.run_with_controller(ControllerExplicit([0;0]),x0,K);
 
 % plot
 X_no_control.plotme('no control')

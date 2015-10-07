@@ -10,11 +10,11 @@ classdef Stngs
     
     methods
         function [obj]=Stngs()
-            obj.sim_dt = 3; 
-            obj.Kdem = 20;
-            obj.Kcool = 20;
+%             obj.sim_dt = 3; 
+%             obj.Kdem = 20;
+%             obj.Kcool = 20;
             obj.etha = 0.1;
-            obj.K = obj.Kdem + obj.Kcool;
+%             obj.K = obj.Kdem + obj.Kcool;
         end
     end
     
